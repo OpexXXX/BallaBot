@@ -1,0 +1,4 @@
+aiogram==2.18
+bs4
+pycairo
+python-dotenv
