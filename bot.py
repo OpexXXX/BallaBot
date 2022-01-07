@@ -11,9 +11,9 @@ from app.handlers.sticker import register_handlers_sticker
 from app.handlers.common import register_handlers_common
 from app.dbprovider import SQLiteProvider
 
-
+config = dotenv_values(".env")
 logger = logging.getLogger(__name__)
-
+iobot = Bot(token=config["BOT_TOKEN"])
 
 async def set_commands(bot: Bot):
     commands = [
@@ -34,11 +34,11 @@ async def main():
     logger.error("Starting bot")
 
     # Парсинг файла конфигурации
-    config = dotenv_values(".env")
+    
 
     # Объявление и инициализация объектов бота и диспетчера
-    bot = Bot(token=config["BOT_TOKEN"])
-    dp = Dispatcher(bot, storage=MemoryStorage())
+   
+    dp = Dispatcher(iobot, storage=MemoryStorage())
 
     SQLiteProvider.connect("db.sqlite")
 
@@ -48,7 +48,7 @@ async def main():
     register_handlers_sticker(dp)
 
     # Установка команд бота
-    await set_commands(bot)
+    await set_commands(iobot)
 
     # Запуск поллинга
     # await dp.skip_updates()  # пропуск накопившихся апдейтов (необязательно)

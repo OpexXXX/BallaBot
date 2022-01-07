@@ -1,7 +1,7 @@
 from aiogram import Dispatcher, types
 import random
 import string
-
+from datetime import datetime
 from shutil import copy2
 
 
@@ -9,8 +9,9 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from app.ballistic.shoot import main as make_sticker
 from aiogram.types import InputFile, sticker
-
 from app.dbprovider import SQLiteProvider
+#from bot import iobot
+#from bot import config
 class MakeSticker(StatesGroup):
     waiting_for_height =  State()
     waiting_for_len = State()
@@ -20,25 +21,30 @@ class MakeSticker(StatesGroup):
     waiting_for_turret_step = State()
     make_file = State()
 
+    
 async def make_pdf(user_data,message):
-    SQLiteProvider.increment_generate(message.from_user.id)
+    
     randName = ''.join([random.choice(string.ascii_lowercase) for i in range(16)])
     pdf_file = 'tmp/'+str(message.from_user.id)+randName+".pdf"
     copy2(user_data['csv_file'],'tmp/'+ str(message.from_user.id)+randName+'.csv')
     copy2(user_data['htm_file'],'tmp/'+ str(message.from_user.id)+randName+'.htm')
+    current_datetime = datetime.now()
     try:
         warning_list,cartrige_name = make_sticker(user_data['csv_file'],user_data['htm_file'],pdf_file,sticker_len_mm=user_data['turret_len'],stickerHeight_mm=user_data['turret_height'],click_on_turn=user_data['click_on_turn'], turrets_step=user_data['turrets_step'])
         doc = InputFile(pdf_file,"Шаг "+str(round(user_data['turrets_step'],2)).format("{1:3.1f}")+"м "+cartrige_name+ ".pdf")
         for row in warning_list:
             await message.answer(row)
         await message.answer_document(doc)
+        SQLiteProvider.increment_generate(message.from_user.id)
+        SQLiteProvider.add_generate_message(message.from_user.id, str(current_datetime) + ": Шаг "+str(round(user_data['turrets_step'],2)).format("{1:3.1f}")+"м "+cartrige_name+ " " +  pdf_file)
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         buttons = ["100", "50", "25", "12.5","10","5",("Изменить длинну " + str(user_data['turret_len']).format("{1:5.1f}")+"мм")]
         keyboard.add(*buttons)
         await message.answer("Введите шаг или скинте новые файлы.", reply_markup=keyboard)
     except Exception as e:
         await message.answer(f"Что то пошло не так.\n{e}",reply_markup=types.ReplyKeyboardRemove())
-
+        SQLiteProvider.add_generate_message(message.from_user.id,str(current_datetime) + ": Шаг "+str(round(user_data['turrets_step'],2)).format("{1:3.1f}")+"м "+ f"{e}" +  pdf_file,succes=False)
+        
 async def sticker_start(message: types.Message, state: FSMContext):
     
     user_id = message.from_user.id

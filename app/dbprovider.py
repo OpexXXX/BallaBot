@@ -32,11 +32,15 @@ class SQLiteProvider:
     def update_db_turr( user_id, turret_height, turret_len, click_on_turn):
         SQLiteProvider._curs.execute("UPDATE users SET  turret_height=?, turret_len=?, click_on_turn=? WHERE user_id = ?", (turret_height, turret_len, click_on_turn,user_id))
         SQLiteProvider._conn.commit()
-    
+    @staticmethod
+    def add_generate_message(user_id,message,succes = True):
+        SQLiteProvider._curs.execute("INSERT INTO generation_log(user_id,   succes, message) VALUES(?,?,?)", (user_id, int(succes), message))
+        SQLiteProvider._conn.commit()
     @staticmethod
     def increment_generate(user_id):
         count = int(SQLiteProvider._curs.execute("SELECT count_of_gen FROM users WHERE user_id=?", (user_id,)).fetchone()[0])
         count+=1
         print(count)
         SQLiteProvider._curs.execute("UPDATE users SET  count_of_gen=? WHERE user_id = ?", (count,user_id))
+
         SQLiteProvider._conn.commit()
