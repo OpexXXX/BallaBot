@@ -187,6 +187,7 @@ async def cmd_help(message: types.Message, state: FSMContext):
     await message.answer("https://youtu.be/r2YRaNnoxaA")
     await message.answer("opex618@gmail.com")
 
+
 def register_handlers_sticker(dp: Dispatcher):
     dp.register_message_handler(sticker_start, commands="start", state="*")
     dp.register_message_handler(cmd_set, commands="set", state="*")
