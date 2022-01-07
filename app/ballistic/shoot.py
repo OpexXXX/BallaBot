@@ -22,57 +22,72 @@ def main(csvFilePath, htmFilePath, pdfOutFilePath, round_to_click = False, stick
     y_pos = 30
     x_pos = 30
     y_pos = printShootingConditions(dat,context,x_pos,y_pos)
-    y_pos+=  5*2.834
+    y_pos+=  3*2.834
     #y_pos = tur.print_sticker_size(x_pos,y_pos)
     tur.set_font_size(3.3*2.834)
     tur.prepare_angular_turret()
     tur.draw(context,[x_pos,y_pos])
     tur.set_font_size(3*2.834)
-    y_pos+=tur.height+20
+    y_pos+=tur.height+15
     for xx in range(1,3):
-        tur.prepare_option_1(step=turrets_step, autoStep=False)
+        tur.prepare_option_1(step=turrets_step, autoStep=False,autoFilling=xx%2)
         tur.draw(context,[x_pos,y_pos])
         y_pos+=tur.height
     y_pos=tur.print_cartride(x_pos,y_pos)
-    y_pos+=10
+    y_pos+=7
     tur_h=tur.height
     if tur.height<8*2.834:
         tur.set_sticker_height(8*2.834)
     for xx in range(1,3):
-        tur.prepare_option_2(step=turrets_step, autoStep=False)
+        tur.prepare_option_2(step=turrets_step, autoStep=False,autoFilling=xx%2)
         tur.draw(context,[x_pos,y_pos])
         y_pos+=tur.height
+    tur.prepare_option_2(step=turrets_step, autoStep=True,autoFilling=True)
+    tur.draw(context,[x_pos,y_pos])
+    y_pos+=tur.height
     tur.set_sticker_height(tur_h)
     y_pos=tur.print_cartride(x_pos,y_pos)
-    y_pos+=10
+    y_pos+=7
     for xx in range(1,3):
-        tur.prepare_option_3(step=turrets_step, autoStep=False)
+        tur.prepare_option_3(step=turrets_step, autoStep=False,autoFilling=xx%2)
         tur.draw(context,[x_pos,y_pos])
         y_pos+=tur.height
+    tur.prepare_option_3(step=turrets_step, autoStep=True,autoFilling=True)
+    tur.draw(context,[x_pos,y_pos])
+    y_pos+=tur.height
     y_pos=tur.print_cartride(x_pos,y_pos)
-    y_pos+=10
+    y_pos+=7
     for xx in range(1,3):
-        tur.prepare_option_4(step=turrets_step, autoStep=False)
+        tur.prepare_option_4(step=turrets_step, autoStep=False,autoFilling=xx%2)
         tur.draw(context,[x_pos,y_pos])
         y_pos+=tur.height
+    tur.prepare_option_4(step=turrets_step, autoStep=True,autoFilling=True)
+    tur.draw(context,[x_pos,y_pos])
+    y_pos+=tur.height
     y_pos=tur.print_cartride(x_pos,y_pos)
-    y_pos+=10    
+    y_pos+=7   
 
     tur_h=tur.height
     if tur.height<8*2.834:
         tur.set_sticker_height(8*2.834)
     for xx in range(1,3):
-        tur.prepare_one_turn(step=turrets_step, autoStep=False)
+        tur.prepare_one_turn(step=turrets_step, autoStep=False,autoFilling=xx%2)
         tur.draw(context,[x_pos,y_pos])
         y_pos+=tur.height
+    tur.prepare_one_turn(step=turrets_step, autoStep=True,autoFilling=True)
+    tur.draw(context,[x_pos,y_pos])
+    y_pos+=tur.height
     y_pos=tur.print_cartride(x_pos,y_pos)
-    y_pos+=10    
+    y_pos+=7    
     for xx in range(1,3):
-        tur.prepare_two_turn(step=turrets_step, autoStep=False)
+        tur.prepare_two_turn(step=turrets_step, autoStep=False,autoFilling=xx%2)
         tur.draw(context,[x_pos,y_pos])
         y_pos+=tur.height
+    tur.prepare_two_turn(step=turrets_step, autoStep=True,autoFilling=True)
+    tur.draw(context,[x_pos,y_pos])
+    y_pos+=tur.height
     y_pos=tur.print_cartride(x_pos,y_pos)
-    y_pos+=15
+    y_pos+=10
     print_signature(context, 10*2.834, 5*2.834)
     
     mildot = ReticleSticker(context,dat)
