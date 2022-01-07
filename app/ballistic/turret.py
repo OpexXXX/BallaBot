@@ -163,7 +163,7 @@ class TurretSticker(Sticker):
         label = TextBox("M",[current_x_pos,2.2*2.834],fontSize= 1.7*2.834)
         self.draw_objects.append(label)
 
-        if roundStep:
+        if current_distance%step and roundStep :
                 current_distance += (step-current_distance%step)
                 if (current_distance%(step*2))==0:
                     current_distance+=step
@@ -191,6 +191,9 @@ class TurretSticker(Sticker):
 
             #print("i=",i,"  ",self.ballistic_data.cartrige)
             #print('step=',step,'  current_x_pos=', current_x_pos, '  current_correction=',  current_correction, '  current_distance=', current_distance)
+            if autoFilling:
+                if self._check_fill(current_distance+step/2,step/2,3):
+                    step/=2
             current_distance+=(step)
             i+=1
             current_correction = self._get_round_click(self.get_correction_from_distance(current_distance,self.round_to_click))
@@ -242,7 +245,7 @@ class TurretSticker(Sticker):
         label = TextBox("{:0.0f}".format(round((current_distance))),[current_x_pos,2.2*2.834],fontSize= 1.7*2.834)
         self.draw_objects.append(label)
 
-        if roundStep:
+        if current_distance%step and roundStep:
                 current_distance += (step-current_distance%step)
                 if (current_distance%(step*2))==0:
                     current_distance+=step
@@ -507,7 +510,6 @@ class TurretSticker(Sticker):
             roundStep = False     165 215 265 315 365
             autoFilling (bool): Автоуменьшение шага. Defaults to True."""
         self.draw_objects = []
-
         self._add_border()
         current_distance = self.ballistic_data.rifle_shoot_distance #Начинаем с дистанции пристрелки
         i=1
@@ -544,7 +546,7 @@ class TurretSticker(Sticker):
             
             #print("i=",i,"  ",self.ballistic_data.cartrige)
             #print('step=',step,'  current_x_pos=', current_x_pos, '  current_correction=',  current_correction, '  current_distance=', current_distance)
-            if roundStep:
+            if current_distance%step and roundStep:
                 current_distance += (step-current_distance%step)
                 roundStep=False
             else:
@@ -589,7 +591,8 @@ class TurretSticker(Sticker):
             self.draw_objects.append(marking)
             #print("i=",i,"  ",self.ballistic_data.cartrige)
             #print('step=',step,'  current_x_pos=', current_x_pos, '  current_correction=',  current_correction, '  current_distance=', current_distance)
-            if roundStep:
+            if current_distance%step and roundStep:
+                
                 current_distance += (step-current_distance%step)
                 current_distance +=step
                 roundStep=False

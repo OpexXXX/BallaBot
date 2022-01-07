@@ -14,12 +14,30 @@ from app.dbprovider import SQLiteProvider
 class MakeSticker(StatesGroup):
     waiting_for_height =  State()
     waiting_for_len = State()
+    waiting_for_len_of_step = State()
     waiting_for_click_on_turn = State()
     waiting_for_file = State()
     waiting_for_turret_step = State()
     make_file = State()
 
-
+async def make_pdf(user_data,message):
+    SQLiteProvider.increment_generate(message.from_user.id)
+    randName = ''.join([random.choice(string.ascii_lowercase) for i in range(16)])
+    pdf_file = 'tmp/'+str(message.from_user.id)+randName+".pdf"
+    copy2(user_data['csv_file'],'tmp/'+ str(message.from_user.id)+randName+'.csv')
+    copy2(user_data['htm_file'],'tmp/'+ str(message.from_user.id)+randName+'.htm')
+    try:
+        warning_list,cartrige_name = make_sticker(user_data['csv_file'],user_data['htm_file'],pdf_file,sticker_len_mm=user_data['turret_len'],stickerHeight_mm=user_data['turret_height'],click_on_turn=user_data['click_on_turn'], turrets_step=user_data['turrets_step'])
+        doc = InputFile(pdf_file,"Шаг "+str(round(user_data['turrets_step'],2)).format("{1:3.1f}")+"м "+cartrige_name+ ".pdf")
+        for row in warning_list:
+            await message.answer(row)
+        await message.answer_document(doc)
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        buttons = ["100", "50", "25", "12.5","10","5",("Изменить длинну " + str(user_data['turret_len']).format("{1:5.1f}")+"мм")]
+        keyboard.add(*buttons)
+        await message.answer("Введите шаг или скинте новые файлы.", reply_markup=keyboard)
+    except Exception as e:
+        await message.answer(f"Что то пошло не так.\n{e}",reply_markup=types.ReplyKeyboardRemove())
 
 async def sticker_start(message: types.Message, state: FSMContext):
     
@@ -51,7 +69,6 @@ async def sticker_start(message: types.Message, state: FSMContext):
 
     await message.answer("Введите высоту барабана, мм:")
     await MakeSticker.waiting_for_height.set()
-
 
 async def wait_click_on_turn(message: types.Message, state: FSMContext):
     num = 0
@@ -156,7 +173,7 @@ async def recive_file(message: types.Message, state: FSMContext):
     
     if ('csv_file_resive'in user_data and user_data['csv_file_resive']  )and ('htm_file_resive'in user_data and user_data['htm_file_resive']):
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        buttons = ["100", "50", "25", "12.5","10","5"]
+        buttons = ["100", "50", "25", "12.5","10","5",("Изменить длинну " + str(user_data['turret_len']).format("{1:5.1f}")+"мм")]
         keyboard.add(*buttons)
         await message.answer("Введите шаг градуировки барабана:", reply_markup=keyboard)
         await MakeSticker.waiting_for_turret_step.set()
@@ -167,7 +184,7 @@ async def recive_file(message: types.Message, state: FSMContext):
         #await message.answer("Жду table.csv table.htm")
         #await MakeSticker.waiting_for_file.set()
 
-async def wait_turret_step(message: types.Message,  state: FSMContext):
+async def wait_turret_len_of_step(message: types.Message,  state: FSMContext):
     num = 0.0
     flag = False
     try:
@@ -179,34 +196,63 @@ async def wait_turret_step(message: types.Message,  state: FSMContext):
     if flag==False:
         await message.answer("Введите длинну окружности барабана или длинну наклейки, мм:")
         return
+    if flag and num>200.0:
+        await message.answer("Длинновато.")
+        await message.answer("Введите длинну окружности барабана или длинну наклейки, мм:")
+        return
+    if flag and num<20.0:
+        await message.answer("Коротковато.")
+        await message.answer("Введите длинну окружности барабана или длинну наклейки, мм:")
+        return
+    await state.update_data(turret_len=num)
+    user_data = await state.get_data()
+    user_id = message.from_user.id
+    turret_height =user_data['turret_height']
+    turret_len=user_data['turret_len'] 
+    click_on_turn=user_data['click_on_turn']
+    SQLiteProvider.update_db_turr(user_id,turret_height,turret_len,click_on_turn)
+
+    if "turrets_step" in user_data.keys():
+        await make_pdf(user_data,message)
+    else:
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        buttons = ["100", "50", "25", "12.5","10","5",("Изменить длинну " + str(user_data['turret_len']).format("{1:5.1f}")+"мм")]
+        keyboard.add(*buttons)
+        await message.answer("Введите шаг градуировки барабана:", reply_markup=keyboard)
+    await MakeSticker.waiting_for_turret_step.set()
+
+async def wait_turret_step(message: types.Message,  state: FSMContext):
+    num = 0.0
+    flag = False
+    if "Изменить длинну" in message.text:
+        await message.answer("Введите длинну окружности барабана или длинну наклейки, мм:",reply_markup=types.ReplyKeyboardRemove())
+        await MakeSticker.waiting_for_len_of_step.set()
+        return
+    try:
+        num=float(message.text.replace(',','.'))
+        flag =  True
+    except ValueError:
+        flag = False
+
+    if flag==False:
+        
+        return
 
     if  flag == False or num not in [100.0 , 50.0, 25.0, 12.5, 10.0, 5.0]:
         await message.answer("Выберите из списка")
         return
     await state.update_data(turrets_step=num)
     user_data = await state.get_data()
+    await make_pdf(user_data,message)
         #await message.answer("Файлы получены")
-    SQLiteProvider.increment_generate(message.from_user.id)
-    randName = ''.join([random.choice(string.ascii_lowercase) for i in range(16)])
-    pdf_file = 'tmp/'+str(message.from_user.id)+randName+".pdf"
-    copy2(user_data['csv_file'],'tmp/'+ str(message.from_user.id)+randName+'.csv')
-    copy2(user_data['htm_file'],'tmp/'+ str(message.from_user.id)+randName+'.htm')
-    try:
-        warning_list,cartrige_name = make_sticker(user_data['csv_file'],user_data['htm_file'],pdf_file,sticker_len_mm=user_data['turret_len'],stickerHeight_mm=user_data['turret_height'],click_on_turn=user_data['click_on_turn'], turrets_step=user_data['turrets_step'])
-        doc = InputFile(pdf_file,"Шаг "+str(round(user_data['turrets_step'],2)).format("{1:3.1f}")+"м "+cartrige_name+ ".pdf")
-        for row in warning_list:
-            await message.answer(row)
-        await message.answer_document(doc)
-        await message.answer("Введите шаг или скинте новые файлы.")
-    except Exception as e:
-        await message.answer(f"Что то пошло не так.\n{e}",reply_markup=types.ReplyKeyboardRemove())
+    
 
     
     #await MakeSticker.waiting_for_file.set()
         
 
 async def cmd_set(message: types.Message, state: FSMContext):
-    await message.answer("Введите высоту барабана, мм:")
+    await message.answer("Введите высоту барабана, мм:",reply_markup=types.ReplyKeyboardRemove())
     await MakeSticker.waiting_for_height.set()
 
 async def cmd_help(message: types.Message, state: FSMContext):
@@ -222,6 +268,7 @@ def register_handlers_sticker(dp: Dispatcher):
     dp.register_message_handler(wait_turret_height, state=MakeSticker.waiting_for_height)
     dp.register_message_handler(wait_click_on_turn, state=MakeSticker.waiting_for_click_on_turn)
     dp.register_message_handler(wait_turret_step, state=MakeSticker.waiting_for_turret_step)
+    dp.register_message_handler(wait_turret_len_of_step, state=MakeSticker.waiting_for_len_of_step)
     dp.register_message_handler(recive_file,content_types=[types.ContentType.DOCUMENT], state=MakeSticker.waiting_for_file)
     dp.register_message_handler(recive_file,content_types=[types.ContentType.DOCUMENT], state=MakeSticker.waiting_for_turret_step)
    
