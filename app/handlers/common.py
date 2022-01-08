@@ -13,7 +13,7 @@ async def cmd_cancel(message: types.Message, state: FSMContext):
 # чей ID указан в файле конфигурации.
 async def secret_command(message: types.Message):
     count_user = SQLiteProvider.number_of_users()
-    await message.answer("Пользователей: "+str(count_user)+".")
+    await message.answer("Пользователей:  "+str(count_user)+" шт.")
 
 
 
