@@ -1,4 +1,4 @@
-# ballistic label bot
+# ballistic  label bot
 
 Telegram бот на библиотеке iogram.
 
