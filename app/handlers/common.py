@@ -5,7 +5,7 @@ from app.dbprovider import SQLiteProvider
 
 async def cmd_cancel(message: types.Message, state: FSMContext):
     await state.finish()
-    await message.answer("Действие отменено", reply_markup=types.ReplyKeyboardRemove())
+    await message.answer("Отмена", reply_markup=types.ReplyKeyboardRemove())
 
   
 
@@ -13,7 +13,7 @@ async def cmd_cancel(message: types.Message, state: FSMContext):
 # чей ID указан в файле конфигурации.
 async def secret_command(message: types.Message):
     count_user = SQLiteProvider.number_of_users()
-    await message.answer("Пользователей:  "+str(count_user)+" шт.")
+    await message.answer("Пользователей: "+str(count_user)+" шт.")
 
 
 
