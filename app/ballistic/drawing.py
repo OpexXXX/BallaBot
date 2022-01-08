@@ -7,6 +7,7 @@ from app.ballistic.file_parser  import BallisticData
 def printShootingConditions(bldat:BallisticData,cntx, x_pos,y_pos,font_Size=3.0*2.834):
     
     label = TextBox(bldat.cartrige,fontSize=4*2.834,anchor='LT')
+    
     label.draw(cntx,[x_pos,y_pos])
     y_pos+=font_Size*1.5
 
