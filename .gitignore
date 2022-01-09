@@ -135,3 +135,4 @@ dmypy.json
 .pyre/
 db.sqlite-journal
 db.sqlite~2ec426b8be90e3358fb258afda94b7c882f96b68
+test_pdf.py
